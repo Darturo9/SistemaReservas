@@ -41,6 +41,7 @@ Migraciones local y remota sincronizadas:
 - `20260720201208_add_multichannel_booking_confirmations.sql`
 - `20260720203500_grant_booking_verification_deliveries_to_service_role.sql`
 - `20260722012925_honor_service_approval_policy.sql`
+- `20260722031925_add_active_organization_preference.sql`
 
 Tablas disponibles:
 
@@ -54,18 +55,18 @@ La funcion `public.create_service_with_resources(...)` crea un servicio y sus re
 
 ## Interfaz Implementada
 
-- `/panel`: redirige al unico negocio o permite seleccionar entre varios.
-- `/panel/[organizationId]`: espacio operativo protegido por membresia.
-- `/panel/[organizationId]/sucursales`: listado y alta de sucursales.
-- `/panel/[organizationId]/recursos`: listado, filtro por sucursal y alta de recursos.
-- `/panel/[organizationId]/servicios`: alta de servicios, politicas y recursos compatibles.
-- `/panel/[organizationId]/disponibilidad`: reglas semanales y excepciones fechadas.
-- `/panel/[organizationId]/agenda`: visor interno de slots y lista de reservas pendientes de aprobacion; `owner` y `admin` pueden confirmar o rechazar.
-- `/panel/[organizationId]/reservas-publicas`: propietarios y administradores definen un slug y publican o desactivan el catálogo público.
+- `/panel`: espacio operativo del negocio activo.
+- `/panel/organizaciones`: selector de negocios para personas con varias membresías.
+- `/panel/sucursales`: listado y alta de sucursales.
+- `/panel/recursos`: listado, filtro por sucursal y alta de recursos.
+- `/panel/servicios`: alta de servicios, politicas y recursos compatibles.
+- `/panel/disponibilidad`: reglas semanales y excepciones fechadas.
+- `/panel/agenda`: visor interno de slots y lista de reservas pendientes de aprobacion; `owner` y `admin` pueden confirmar o rechazar.
+- `/panel/reservas-publicas`: propietarios y administradores definen un slug y publican o desactivan el catálogo público.
 - `/reservar/[slug]`: catálogo público sin autenticación para consultar sucursal, servicio, fecha y slots disponibles.
 - `/reservar/verificar-correo`: muestra una activacion no mutante para enlaces de correo o WhatsApp; el boton **Confirmar reserva** consume el token de un solo uso.
 
-Las acciones de servidor validan los datos y las politicas RLS aplican la autorizacion definitiva. Los triggers de base de datos registran cambios de configuracion en `audit_logs`.
+`profiles.active_organization_id` conserva el último negocio seleccionado, pero no autoriza acceso. Cada página y acción valida la membresía vigente bajo la sesión autenticada y las políticas RLS aplican la autorización definitiva. Los triggers de base de datos registran cambios de configuracion en `audit_logs`.
 
 ## Disponibilidad Actual
 
@@ -149,7 +150,7 @@ Entre el 20 y el 22 de julio de 2026 se validaron los flujos públicos de correo
 ## Siguiente Objetivo: Validar Operacion De Agenda
 
 1. Validar una confirmación pública para un servicio `automatic` y otra para `manual`, incluidos token de uso único, estado final y auditoría.
-2. Confirmar y rechazar solicitudes manuales desde `/panel/[organizationId]/agenda` bajo un rol `owner` o `admin`; verificar que `staff` solo consulta y que los cambios quedan en `audit_logs`.
+2. Confirmar y rechazar solicitudes manuales desde `/panel/agenda` bajo un rol `owner` o `admin`; verificar que `staff` solo consulta y que los cambios quedan en `audit_logs`.
 3. Simular un fallo de entrega de Twilio y comprobar que se emite correo de respaldo una sola vez.
 4. Definir el alcance del siguiente bloque de Fase 6: detalle e historial de reserva, cancelación, reprogramación, no-show y vistas de agenda por día o semana.
 5. Mantener SMS, recordatorios y notificaciones de resultado fuera de alcance hasta validar estas operaciones.

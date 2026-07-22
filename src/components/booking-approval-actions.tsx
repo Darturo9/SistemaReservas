@@ -2,7 +2,7 @@
 
 import { useActionState } from "react";
 
-import type { BookingApprovalState } from "@/app/panel/[organizationId]/agenda/actions";
+import type { BookingApprovalState } from "@/app/panel/agenda/actions";
 
 type BookingApprovalActionsProps = {
   action: (

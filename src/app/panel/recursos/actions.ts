@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 
+import { getActiveWorkspace } from "@/lib/active-workspace";
 import { createClient } from "@/lib/supabase/server";
 
 const resourceKinds = [
@@ -24,7 +25,6 @@ function getText(formData: FormData, name: string) {
 }
 
 export async function createResource(
-  organizationId: string,
   _: ResourceFormState,
   formData: FormData,
 ): Promise<ResourceFormState> {
@@ -51,12 +51,7 @@ export async function createResource(
   }
 
   const supabase = await createClient();
-  const { data: claimsData, error: claimsError } =
-    await supabase.auth.getClaims();
-
-  if (claimsError || !claimsData?.claims.sub) {
-    return { error: "Tu sesión ya no es válida. Inicia sesión nuevamente." };
-  }
+  const { organizationId } = await getActiveWorkspace();
 
   const { data: location, error: locationError } = await supabase
     .from("locations")
@@ -86,8 +81,8 @@ export async function createResource(
     return { error: "No fue posible crear el recurso. Intenta de nuevo." };
   }
 
-  revalidatePath(`/panel/${organizationId}`);
-  revalidatePath(`/panel/${organizationId}/recursos`);
+  revalidatePath("/panel");
+  revalidatePath("/panel/recursos");
 
   return { message: "Recurso creado correctamente." };
 }

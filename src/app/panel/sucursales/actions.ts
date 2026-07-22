@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 
+import { getActiveWorkspace } from "@/lib/active-workspace";
 import { createClient } from "@/lib/supabase/server";
 
 export type LocationFormState = {
@@ -16,7 +17,6 @@ function getOptionalText(formData: FormData, name: string) {
 }
 
 export async function createLocation(
-  organizationId: string,
   _: LocationFormState,
   formData: FormData,
 ): Promise<LocationFormState> {
@@ -42,12 +42,7 @@ export async function createLocation(
   }
 
   const supabase = await createClient();
-  const { data: claimsData, error: claimsError } =
-    await supabase.auth.getClaims();
-
-  if (claimsError || !claimsData?.claims.sub) {
-    return { error: "Tu sesión ya no es válida. Inicia sesión nuevamente." };
-  }
+  const { organizationId } = await getActiveWorkspace();
 
   const { error } = await supabase.from("locations").insert({
     tenant_id: organizationId,
@@ -65,8 +60,8 @@ export async function createLocation(
     return { error: "No fue posible crear la sucursal. Intenta de nuevo." };
   }
 
-  revalidatePath(`/panel/${organizationId}`);
-  revalidatePath(`/panel/${organizationId}/sucursales`);
+  revalidatePath("/panel");
+  revalidatePath("/panel/sucursales");
 
   return { message: "Sucursal creada correctamente." };
 }

@@ -1,105 +1,104 @@
 import Link from "next/link";
-import { redirect } from "next/navigation";
 
-import { createClient } from "@/lib/supabase/server";
+import { getActiveWorkspace } from "@/lib/active-workspace";
 
 export const dynamic = "force-dynamic";
 
 export default async function DashboardPage() {
-  const supabase = await createClient();
-  const { data: claimsData, error: claimsError } =
-    await supabase.auth.getClaims();
-  const userId = claimsData?.claims.sub;
-
-  if (claimsError || !userId) {
-    redirect("/iniciar-sesion");
-  }
-
-  const { data: memberships, error: membershipsError } = await supabase
-    .from("organization_members")
-    .select("organization_id, role")
-    .eq("user_id", userId)
-    .order("created_at");
-
-  if (membershipsError) {
-    throw membershipsError;
-  }
-
-  if (!memberships.length) {
-    redirect("/onboarding");
-  }
-
-  const organizationIds = memberships.map(
-    (membership) => membership.organization_id,
-  );
-  const rolesByOrganizationId = new Map(
-    memberships.map((membership) => [
-      membership.organization_id,
-      membership.role,
-    ]),
-  );
-  const { data: organizations, error: organizationsError } = await supabase
-    .from("organizations")
-    .select("id, name")
-    .in("id", organizationIds)
-    .order("name");
-
-  if (organizationsError) {
-    throw organizationsError;
-  }
-
-  const businesses = organizations.flatMap((organization) => {
-    const role = rolesByOrganizationId.get(organization.id);
-
-    return role ? [{ ...organization, role }] : [];
-  });
-
-  if (!businesses.length) {
-    redirect("/onboarding");
-  }
-
-  if (businesses.length === 1) {
-    redirect(`/panel/${businesses[0].id}`);
-  }
+  const { organizationName, role } = await getActiveWorkspace();
+  const roleLabel =
+    role === "owner"
+      ? "Propietario"
+      : role === "admin"
+        ? "Administrador"
+        : "Personal";
 
   return (
-    <main className="panel-page panel-selector-page">
-      <section
-        aria-labelledby="business-selector-title"
-        className="panel-selector"
-      >
-        <div className="panel-selector-intro">
-          <p className="eyebrow">Tus espacios</p>
-          <h1 id="business-selector-title">
-            Elige el negocio que vas a operar.
-          </h1>
-          <p>
-            Cada agenda mantiene sus servicios, sucursales, recursos y reservas
-            separados.
-          </p>
+    <main className="panel-page workspace-page">
+      <section aria-labelledby="workspace-title" className="workspace-shell">
+        <header className="workspace-header">
+          <div>
+            <p className="eyebrow">Espacio operativo</p>
+            <h1 id="workspace-title">{organizationName}</h1>
+          </div>
+          <div className="workspace-meta">
+            <span>{roleLabel}</span>
+            <Link href="/panel/organizaciones">Cambiar negocio</Link>
+          </div>
+        </header>
+
+        <div className="workspace-lede">
+          <p>Configuración comercial</p>
+          <h2>Construye y revisa la base de tu agenda, paso a paso.</h2>
+          <span>
+            Tus reservas aún no están abiertas. Configura dónde, qué y cuándo
+            pueden reservar tus clientes, y revisa los slots calculados.
+          </span>
         </div>
-        <div className="panel-selector-list">
-          {businesses.map((business) => (
-            <Link
-              className="organization-choice"
-              href={`/panel/${business.id}`}
-              key={business.id}
-            >
-              <span className="organization-choice-label">Negocio</span>
-              <strong>{business.name}</strong>
-              <span>
-                {business.role === "owner"
-                  ? "Propietario"
-                  : business.role === "admin"
-                    ? "Administrador"
-                    : "Personal"}
-              </span>
-            </Link>
-          ))}
-        </div>
-        <Link className="panel-home-link" href="/">
-          Volver al inicio
-        </Link>
+
+        <ol className="workspace-steps">
+          <li>
+            <span>01</span>
+            <div>
+              <h3>Sucursales</h3>
+              <p>Define ubicación, contacto y zona horaria.</p>
+              <Link className="workspace-step-action" href="/panel/sucursales">
+                Configurar sucursales
+              </Link>
+            </div>
+          </li>
+          <li>
+            <span>02</span>
+            <div>
+              <h3>Recursos</h3>
+              <p>Agrega personas, salas, canchas o equipos reservables.</p>
+              <Link className="workspace-step-action" href="/panel/recursos">
+                Configurar recursos
+              </Link>
+            </div>
+          </li>
+          <li>
+            <span>03</span>
+            <div>
+              <h3>Servicios y horarios</h3>
+              <p>Conecta los servicios y establece su disponibilidad.</p>
+              <Link className="workspace-step-action" href="/panel/servicios">
+                Configurar servicios
+              </Link>
+              <Link
+                className="workspace-step-action"
+                href="/panel/disponibilidad"
+              >
+                Configurar disponibilidad
+              </Link>
+            </div>
+          </li>
+          <li>
+            <span>04</span>
+            <div>
+              <h3>Motor de agenda</h3>
+              <p>Comprueba los horarios disponibles para cada servicio.</p>
+              <Link className="workspace-step-action" href="/panel/agenda">
+                Revisar disponibilidad
+              </Link>
+            </div>
+          </li>
+          <li>
+            <span>05</span>
+            <div>
+              <h3>Reservas públicas</h3>
+              <p>
+                Define el enlace que compartirás para consultar tus horarios.
+              </p>
+              <Link
+                className="workspace-step-action"
+                href="/panel/reservas-publicas"
+              >
+                Configurar enlace público
+              </Link>
+            </div>
+          </li>
+        </ol>
       </section>
     </main>
   );

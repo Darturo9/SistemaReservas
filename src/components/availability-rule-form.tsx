@@ -2,7 +2,7 @@
 
 import { useActionState, useEffect, useRef } from "react";
 
-import type { AvailabilityFormState } from "@/app/panel/[organizationId]/disponibilidad/actions";
+import type { AvailabilityFormState } from "@/app/panel/disponibilidad/actions";
 
 type AvailabilityRuleFormProps = {
   action: (

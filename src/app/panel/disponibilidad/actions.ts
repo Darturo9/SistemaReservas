@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 
+import { getActiveWorkspace } from "@/lib/active-workspace";
 import { createClient } from "@/lib/supabase/server";
 
 const exceptionKinds = ["available", "unavailable"] as const;
@@ -28,7 +29,6 @@ function getGuatemalaInstant(value: string) {
 }
 
 export async function createAvailabilityRule(
-  organizationId: string,
   _: AvailabilityFormState,
   formData: FormData,
 ): Promise<AvailabilityFormState> {
@@ -51,12 +51,7 @@ export async function createAvailabilityRule(
   }
 
   const supabase = await createClient();
-  const { data: claimsData, error: claimsError } =
-    await supabase.auth.getClaims();
-
-  if (claimsError || !claimsData?.claims.sub) {
-    return { error: "Tu sesión ya no es válida. Inicia sesión nuevamente." };
-  }
+  const { organizationId } = await getActiveWorkspace();
 
   const { data: location, error: locationError } = await supabase
     .from("locations")
@@ -126,14 +121,13 @@ export async function createAvailabilityRule(
     return { error: "No fue posible crear el horario. Intenta de nuevo." };
   }
 
-  revalidatePath(`/panel/${organizationId}`);
-  revalidatePath(`/panel/${organizationId}/disponibilidad`);
+  revalidatePath("/panel");
+  revalidatePath("/panel/disponibilidad");
 
   return { message: "Horario semanal creado correctamente." };
 }
 
 export async function createAvailabilityException(
-  organizationId: string,
   _: AvailabilityFormState,
   formData: FormData,
 ): Promise<AvailabilityFormState> {
@@ -161,12 +155,7 @@ export async function createAvailabilityException(
   }
 
   const supabase = await createClient();
-  const { data: claimsData, error: claimsError } =
-    await supabase.auth.getClaims();
-
-  if (claimsError || !claimsData?.claims.sub) {
-    return { error: "Tu sesión ya no es válida. Inicia sesión nuevamente." };
-  }
+  const { organizationId } = await getActiveWorkspace();
 
   const { data: location, error: locationError } = await supabase
     .from("locations")
@@ -212,8 +201,8 @@ export async function createAvailabilityException(
     return { error: "No fue posible crear la excepción. Intenta de nuevo." };
   }
 
-  revalidatePath(`/panel/${organizationId}`);
-  revalidatePath(`/panel/${organizationId}/disponibilidad`);
+  revalidatePath("/panel");
+  revalidatePath("/panel/disponibilidad");
 
   return { message: "Excepción de horario creada correctamente." };
 }

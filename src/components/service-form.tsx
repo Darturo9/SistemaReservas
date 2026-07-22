@@ -2,7 +2,7 @@
 
 import { useActionState, useEffect, useRef } from "react";
 
-import type { ServiceFormState } from "@/app/panel/[organizationId]/servicios/actions";
+import type { ServiceFormState } from "@/app/panel/servicios/actions";
 
 type ServiceFormProps = {
   action: (

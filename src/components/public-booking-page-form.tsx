@@ -2,7 +2,7 @@
 
 import { useActionState } from "react";
 
-import type { PublicBookingPageFormState } from "@/app/panel/[organizationId]/reservas-publicas/actions";
+import type { PublicBookingPageFormState } from "@/app/panel/reservas-publicas/actions";
 
 type PublicBookingPageFormProps = {
   action: (

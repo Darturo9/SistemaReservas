@@ -543,24 +543,35 @@ export type Database = {
       };
       profiles: {
         Row: {
+          active_organization_id: string | null;
           created_at: string;
           full_name: string | null;
           id: string;
           updated_at: string;
         };
         Insert: {
+          active_organization_id?: string | null;
           created_at?: string;
           full_name?: string | null;
           id: string;
           updated_at?: string;
         };
         Update: {
+          active_organization_id?: string | null;
           created_at?: string;
           full_name?: string | null;
           id?: string;
           updated_at?: string;
         };
-        Relationships: [];
+        Relationships: [
+          {
+            foreignKeyName: "profiles_active_organization_id_fkey";
+            columns: ["active_organization_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+        ];
       };
       resources: {
         Row: {

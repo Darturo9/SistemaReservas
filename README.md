@@ -90,6 +90,12 @@ En Supabase Dashboard, configura `NEXT_PUBLIC_SITE_URL` como **Site URL** y regi
 
 Agrega tambien las variantes exactas de staging y desarrollo local en la configuracion de Auth.
 
+## Navegacion Del Panel
+
+Las rutas internas no exponen identificadores de organización. `/panel` carga el negocio activo de la persona y `/panel/organizaciones` permite cambiarlo cuando tiene varias membresías. Las rutas operativas son `/panel/sucursales`, `/panel/recursos`, `/panel/servicios`, `/panel/disponibilidad`, `/panel/agenda` y `/panel/reservas-publicas`.
+
+La preferencia `profiles.active_organization_id` solo selecciona contexto de navegación. La sesión, las membresías actuales, RLS y las RPC siguen siendo las barreras de autorización; una preferencia manipulada no concede acceso a otro negocio.
+
 ## Flujo De Migraciones
 
 1. Redacta el SQL de la migracion y aplicalo al proyecto remoto mediante el MCP de Supabase.

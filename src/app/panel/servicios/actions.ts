@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 
+import { getActiveWorkspace } from "@/lib/active-workspace";
 import { createClient } from "@/lib/supabase/server";
 
 const approvalPolicies = ["automatic", "manual"] as const;
@@ -24,7 +25,6 @@ function getInteger(value: string) {
 }
 
 export async function createService(
-  organizationId: string,
   _: ServiceFormState,
   formData: FormData,
 ): Promise<ServiceFormState> {
@@ -94,12 +94,7 @@ export async function createService(
   }
 
   const supabase = await createClient();
-  const { data: claimsData, error: claimsError } =
-    await supabase.auth.getClaims();
-
-  if (claimsError || !claimsData?.claims.sub) {
-    return { error: "Tu sesión ya no es válida. Inicia sesión nuevamente." };
-  }
+  const { organizationId } = await getActiveWorkspace();
 
   const { error } = await supabase.rpc("create_service_with_resources", {
     p_tenant_id: organizationId,
@@ -124,8 +119,8 @@ export async function createService(
     return { error: "No fue posible crear el servicio. Intenta de nuevo." };
   }
 
-  revalidatePath(`/panel/${organizationId}`);
-  revalidatePath(`/panel/${organizationId}/servicios`);
+  revalidatePath("/panel");
+  revalidatePath("/panel/servicios");
 
   return { message: "Servicio creado correctamente." };
 }

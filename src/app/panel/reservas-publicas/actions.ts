@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 
+import { getActiveWorkspace } from "@/lib/active-workspace";
 import { createClient } from "@/lib/supabase/server";
 
 export type PublicBookingPageFormState = {
@@ -12,7 +13,6 @@ export type PublicBookingPageFormState = {
 const SLUG_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 
 export async function updatePublicBookingPage(
-  organizationId: string,
   _: PublicBookingPageFormState,
   formData: FormData,
 ): Promise<PublicBookingPageFormState> {
@@ -38,26 +38,9 @@ export async function updatePublicBookingPage(
   }
 
   const supabase = await createClient();
-  const { data: claimsData, error: claimsError } =
-    await supabase.auth.getClaims();
-  const userId = claimsData?.claims.sub;
+  const { organizationId, role } = await getActiveWorkspace();
 
-  if (claimsError || !userId) {
-    return { error: "Tu sesión ya no es válida. Inicia sesión nuevamente." };
-  }
-
-  const { data: membership, error: membershipError } = await supabase
-    .from("organization_members")
-    .select("role")
-    .eq("organization_id", organizationId)
-    .eq("user_id", userId)
-    .maybeSingle();
-
-  if (
-    membershipError ||
-    !membership ||
-    (membership.role !== "owner" && membership.role !== "admin")
-  ) {
+  if (role !== "owner" && role !== "admin") {
     return { error: "Tu rol no puede configurar las reservas públicas." };
   }
 
@@ -79,8 +62,8 @@ export async function updatePublicBookingPage(
     };
   }
 
-  revalidatePath(`/panel/${organizationId}`);
-  revalidatePath(`/panel/${organizationId}/reservas-publicas`);
+  revalidatePath("/panel");
+  revalidatePath("/panel/reservas-publicas");
   revalidatePath("/reservar/[slug]", "page");
 
   return {

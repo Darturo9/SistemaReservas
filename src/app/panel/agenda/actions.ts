@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 
+import { getActiveWorkspace } from "@/lib/active-workspace";
 import { createClient } from "@/lib/supabase/server";
 
 const approvalDecisions = ["confirmed", "cancelled"] as const;
@@ -18,7 +19,6 @@ function getText(formData: FormData, name: string) {
 }
 
 export async function resolvePendingBookingApproval(
-  organizationId: string,
   _: BookingApprovalState,
   formData: FormData,
 ): Promise<BookingApprovalState> {
@@ -36,11 +36,16 @@ export async function resolvePendingBookingApproval(
   }
 
   const supabase = await createClient();
-  const { data: claimsData, error: claimsError } =
-    await supabase.auth.getClaims();
+  const { organizationId } = await getActiveWorkspace();
+  const { data: booking, error: bookingError } = await supabase
+    .from("bookings")
+    .select("id")
+    .eq("id", bookingId)
+    .eq("tenant_id", organizationId)
+    .maybeSingle();
 
-  if (claimsError || !claimsData?.claims.sub) {
-    return { error: "Tu sesión ya no es válida. Inicia sesión nuevamente." };
+  if (bookingError || !booking) {
+    return { error: "No encontramos esta reserva en el negocio activo." };
   }
 
   const { error } = await supabase.rpc("resolve_pending_booking_approval", {
@@ -65,8 +70,8 @@ export async function resolvePendingBookingApproval(
     return { error: "No fue posible actualizar la reserva. Intenta de nuevo." };
   }
 
-  revalidatePath(`/panel/${organizationId}`);
-  revalidatePath(`/panel/${organizationId}/agenda`);
+  revalidatePath("/panel");
+  revalidatePath("/panel/agenda");
 
   return {
     message:

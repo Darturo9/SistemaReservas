@@ -2,7 +2,7 @@
 
 import { useActionState, useEffect, useRef } from "react";
 
-import type { LocationFormState } from "@/app/panel/[organizationId]/sucursales/actions";
+import type { LocationFormState } from "@/app/panel/sucursales/actions";
 
 type LocationFormProps = {
   action: (

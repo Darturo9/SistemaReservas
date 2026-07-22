@@ -2,7 +2,7 @@
 
 import { useActionState, useEffect, useRef } from "react";
 
-import type { ResourceFormState } from "@/app/panel/[organizationId]/recursos/actions";
+import type { ResourceFormState } from "@/app/panel/recursos/actions";
 
 type ResourceFormProps = {
   action: (
