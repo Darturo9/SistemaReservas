@@ -9,7 +9,8 @@
 - Fase 5.1 completada: catálogo público por slug, publicación explícita y consulta anónima de disponibilidad.
 - Fase 5.2 completada: clientes, contactos normalizados y bloqueos públicos de 15 minutos en `pending_verification`.
 - Fase 5.3 completada: tokens hasheados de un solo uso, confirmacion principal por WhatsApp y correo de respaldo mediante Resend.
-- El bloque minimo de aprobacion manual de Fase 6 esta implementado y la politica de cada servicio determina si una reserva verificada queda `confirmed` o `pending_approval`. Siguiente objetivo: validar ambos resultados y las acciones de `owner`, `admin` y `staff` desde agenda antes de ampliar el panel operativo.
+- El bloque minimo de aprobacion manual de Fase 6 esta implementado y validado: la politica de cada servicio determina si una reserva verificada queda `confirmed` o `pending_approval`, y `owner`, `admin` y `staff` respetan sus permisos en agenda.
+- El panel usa rutas canónicas sin UUID y una preferencia de organización activa validada contra membresías y RLS. Siguiente objetivo: validar el fallback Twilio→Resend antes de ampliar el panel operativo.
 - SMS queda diferido para controlar costos del MVP.
 
 ## Objetivo De Entrega

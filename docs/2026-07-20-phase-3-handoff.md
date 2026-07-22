@@ -2,7 +2,7 @@
 
 ## Estado Actual
 
-Las fases 1 a 5 y el bloque minimo de aprobacion manual de Fase 6 estan implementados. La confirmacion principal por WhatsApp, el correo de respaldo mediante Resend, los registros de entrega y la politica de aprobacion por servicio estan implementados.
+Las fases 1 a 5 y el bloque minimo de aprobacion manual de Fase 6 estan implementados y validados. La confirmacion principal por WhatsApp, el correo de respaldo mediante Resend, los registros de entrega, la politica de aprobacion por servicio y las rutas internas sin UUID estan implementados.
 
 La verificacion SMS queda diferida para controlar costos del MVP. El enlace de confirmacion no se consume al abrirse: muestra una pantalla de activacion y la persona debe pulsar **Confirmar reserva**. La reserva pasa a `confirmed` con politica `automatic` o a `pending_approval` con politica `manual`.
 
@@ -14,6 +14,7 @@ La verificacion SMS queda diferida para controlar costos del MVP. El enlace de c
 - El registro es autoservicio con correo y contrasena; confirmar el correo es obligatorio.
 - En el MVP, el telefono se captura en formato E.164 pero no se verifica por SMS. WhatsApp es el canal principal para confirmar la intencion de reserva mediante enlace de un solo uso; correo es respaldo automatico ante fallo de WhatsApp. Abrir el enlace no cambia datos; una activacion explícita confirma las reservas de servicios `automatic` o mueve las de servicios `manual` a `pending_approval`, que un `owner` o `admin` resuelve manualmente.
 - RLS es la barrera principal entre tenants. `owner` y `admin` gestionan configuracion; `staff` solo consulta.
+- `profiles.active_organization_id` conserva el negocio activo de cada persona entre dispositivos. Es una preferencia de navegación, no una fuente de permisos: cada ruta vuelve a validar la membresía vigente y RLS.
 
 ## Base De Datos
 
@@ -147,16 +148,14 @@ Entre el 20 y el 22 de julio de 2026 se validaron los flujos públicos de correo
 - Abrir `/reservar/verificar-correo?token=...` no consume el token. El formulario de la página ejecuta la confirmación únicamente después de una activación explícita.
 - El servidor usa Twilio para WhatsApp y Resend como respaldo automático si falla la entrega. Requiere `SUPABASE_SERVICE_ROLE_KEY`, credenciales de Twilio y configuración de Resend; sin ellas la aplicación no crea el bloqueo para evitar retener horarios sin poder verificar.
 
-## Siguiente Objetivo: Validar Operacion De Agenda
+## Siguiente Objetivo: Validar Fallback Y Definir Operacion
 
-1. Validar una confirmación pública para un servicio `automatic` y otra para `manual`, incluidos token de uso único, estado final y auditoría.
-2. Confirmar y rechazar solicitudes manuales desde `/panel/agenda` bajo un rol `owner` o `admin`; verificar que `staff` solo consulta y que los cambios quedan en `audit_logs`.
-3. Simular un fallo de entrega de Twilio y comprobar que se emite correo de respaldo una sola vez.
-4. Definir el alcance del siguiente bloque de Fase 6: detalle e historial de reserva, cancelación, reprogramación, no-show y vistas de agenda por día o semana.
-5. Mantener SMS, recordatorios y notificaciones de resultado fuera de alcance hasta validar estas operaciones.
+1. Simular un fallo de entrega de Twilio y comprobar que se emite correo de respaldo mediante Resend una sola vez.
+2. Definir el siguiente bloque de Fase 6: detalle e historial de reserva, cancelación, reprogramación, no-show y una vista interna de agenda por día o semana.
+3. Mantener SMS, recordatorios y notificaciones de resultado fuera de alcance hasta definir ese bloque.
 
 ## Mensaje Para Retomar
 
 ```text
-Continua SistemaReservas desde este handoff, `AGENTS.md`, el README y los planes en docs/plans/. Las fases 1 a 5 y el bloque mínimo de aprobación manual de Fase 6 están implementados. WhatsApp es el canal principal, Resend es respaldo automático y la confirmación exige pulsar **Confirmar reserva**; un servicio `automatic` termina en `confirmed` y uno `manual` en `pending_approval`. Valida ambos resultados, la aprobación o rechazo desde agenda y la auditoría para `owner`, `admin` y `staff`. No avances a SMS, recordatorios ni notificaciones de resultado sin definir un cambio OpenSpec. Revisa repositorio, handoff, migraciones y tablas remotas antes de cambiar código. Usa Supabase MCP y migraciones SQL versionadas; no uses Docker. No uses magic_21st_magic_component_builder porque el proyecto no tiene créditos.
+Continua SistemaReservas desde este handoff, `AGENTS.md`, el README y los planes en docs/plans/. Las fases 1 a 5 y el bloque mínimo de aprobación manual de Fase 6 están implementados y validados. WhatsApp es el canal principal, Resend es respaldo automático y la confirmación exige pulsar **Confirmar reserva**; un servicio `automatic` termina en `confirmed` y uno `manual` en `pending_approval`. El panel usa rutas estáticas bajo `/panel` y una organización activa validada por membresía. Valida ahora el fallback Twilio→Resend y define el siguiente bloque operativo antes de avanzar a SMS, recordatorios o notificaciones de resultado. Revisa repositorio, handoff, migraciones y tablas remotas antes de cambiar código. Usa Supabase MCP y migraciones SQL versionadas; no uses Docker. No uses magic_21st_magic_component_builder porque el proyecto no tiene créditos.
 ```

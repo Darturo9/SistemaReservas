@@ -14,4 +14,4 @@
 
 - [x] 3.1 Actualizar README, handoff y documentación de rutas con la navegación canónica, el selector de negocios y la garantía de que la preferencia no autoriza acceso.
 - [x] 3.2 Ejecutar `npm run format`, `npm run lint`, `npm run build`, `npm run types:generate` y las validaciones OpenSpec correspondientes.
-- [ ] 3.3 Validar manualmente una persona sin organización, una con una organización, una con varias organizaciones, una preferencia revocada y un enlace heredado autorizado y no autorizado.
+- [x] 3.3 Validar manualmente una persona sin organización, una con una organización, una con varias organizaciones, una preferencia revocada y un enlace heredado autorizado y no autorizado.
