@@ -1559,8 +1559,7 @@ h1 {
   min-height: 100svh;
   padding: clamp(20px, 5vw, 72px);
   background:
-    radial-gradient(circle at 90% 4%, #dbe8dc 0, transparent 31%),
-    var(--paper);
+    radial-gradient(circle at 90% 4%, #dbe8dc 0, transparent 31%), var(--paper);
 }
 
 .public-booking-shell {

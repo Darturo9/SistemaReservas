@@ -14,4 +14,4 @@
 
 - [ ] 3.1 Validar manualmente en movil la primera franja, cambio de franja, revelacion de horarios adicionales y navegacion al paso de datos.
 - [ ] 3.2 Validar una fecha sin horarios y una fecha con disponibilidad en varias franjas sin perder los filtros seleccionados.
-- [ ] 3.3 Ejecutar Prettier, TypeScript y ESLint.
+- [x] 3.3 Ejecutar Prettier, TypeScript y ESLint.

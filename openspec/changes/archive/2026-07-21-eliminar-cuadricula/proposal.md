@@ -11,6 +11,7 @@ Los fondos en cuadrícula compiten visualmente con el contenido en las pantallas
 ## Capabilities
 
 ### New Capabilities
+
 - `grid-background-removal`: Garantiza que las superficies principales de la aplicación se rendericen sin fondos en cuadrícula ni líneas decorativas repetidas.
 
 ### Modified Capabilities

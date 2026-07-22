@@ -5,11 +5,13 @@ La identidad visual se concentra en `src/app/globals.css`. Actualmente, las supe
 ## Goals / Non-Goals
 
 **Goals:**
+
 - Eliminar todos los fondos de cuadrícula y líneas repetidas de las superficies compartidas.
 - Mantener el color base asignado a cada superficie y conservar los fondos decorativos que no son cuadrículas.
 - Limitar el cambio a estilos globales para que todas las rutas afectadas queden cubiertas de forma consistente.
 
 **Non-Goals:**
+
 - Rediseñar la paleta, tipografía, sombras, componentes o maquetación con CSS Grid.
 - Modificar datos, rutas, APIs, dependencias o componentes React.
 - Eliminar degradados radiales que no formen un patrón de cuadrícula.
