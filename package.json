@@ -1,0 +1,42 @@
+{
+  "name": "sistema-reservas",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint .",
+    "format": "prettier --check .",
+    "format:write": "prettier --write .",
+    "supabase:start": "supabase start",
+    "supabase:stop": "supabase stop",
+    "supabase:link": "supabase link --project-ref \"$SUPABASE_PROJECT_REF\"",
+    "db:pull": "supabase db pull",
+    "db:migration:new": "supabase migration new",
+    "db:push:dry": "supabase db push --dry-run",
+    "db:push": "supabase db push",
+    "db:reset": "supabase db reset",
+    "types:generate": "supabase gen types typescript --linked --schema public > src/lib/supabase/database.types.ts"
+  },
+  "dependencies": {
+    "@supabase/ssr": "0.12.3",
+    "@supabase/supabase-js": "2.110.7",
+    "next": "16.2.10",
+    "react": "19.2.7",
+    "react-dom": "19.2.7",
+    "resend": "^6.17.2"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "4.3.3",
+    "@types/node": "26.1.1",
+    "@types/react": "19.2.17",
+    "@types/react-dom": "19.2.3",
+    "eslint": "9.39.5",
+    "eslint-config-next": "16.2.10",
+    "prettier": "3.9.5",
+    "prettier-plugin-tailwindcss": "0.8.1",
+    "tailwindcss": "4.3.3",
+    "typescript": "6.0.3"
+  }
+}
