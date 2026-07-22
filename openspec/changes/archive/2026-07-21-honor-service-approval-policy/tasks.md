@@ -15,5 +15,5 @@
 ## 4. Verificación
 
 - [x] 4.1 Ejecutar `npm run format`, `npm run lint` y `npm run build`.
-- [ ] 4.2 Validar manualmente una confirmación pública para un servicio `automatic` y otra para `manual`, incluyendo token de uso único, estado final y auditoría de cada reserva.
-- [ ] 4.3 Validar manualmente que `owner` y `admin` resuelven solicitudes manuales, que `staff` solo consulta y que cada decisión queda en `audit_logs`.
+- [x] 4.2 Validar manualmente una confirmación pública para un servicio `automatic` y otra para `manual`, incluyendo token de uso único, estado final y auditoría de cada reserva.
+- [x] 4.3 Validar manualmente que `owner` y `admin` resuelven solicitudes manuales, que `staff` solo consulta y que cada decisión queda en `audit_logs`.
