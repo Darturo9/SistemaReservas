@@ -6,4 +6,4 @@
 ## 2. Verificación
 
 - [x] 2.1 Ejecutar Prettier, ESLint y el build de producción.
-- [ ] 2.2 Validar manualmente una vista previa de WhatsApp, una primera activación válida y un segundo intento con el mismo enlace.
+- [x] 2.2 Validar manualmente una vista previa de WhatsApp, una primera activación válida y un segundo intento con el mismo enlace.
