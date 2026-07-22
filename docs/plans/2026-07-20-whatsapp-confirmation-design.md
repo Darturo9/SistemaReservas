@@ -6,12 +6,11 @@ Usar WhatsApp como canal principal para confirmar la intencion de reservar en Gu
 
 ## Flujo
 
-1. El visitante elige `WhatsApp` o `Correo` al retener un horario. WhatsApp es la opcion predeterminada.
-2. Si elige WhatsApp, debe otorgar consentimiento explicito para recibir el mensaje de confirmacion.
-3. La aplicacion crea el bloqueo en `pending_verification` por 15 minutos y emite un token hasheado asociado al canal elegido.
-4. Para WhatsApp, el servidor envia una plantilla utility de Twilio con un enlace de un solo uso. Para correo, envia el enlace mediante Resend.
-5. Al abrir cualquier enlace valido, la reserva pasa a `pending_approval`; el negocio la confirma o rechaza desde la agenda.
-6. Si Twilio devuelve un error inmediato o un webhook informa `failed`/`undelivered`, el servidor emite un token de correo y envia el respaldo automaticamente. Una reserva no recibe dos respaldos por el mismo fallo.
+1. El visitante consiente recibir el enlace de confirmacion por WhatsApp; este es el canal principal.
+2. La aplicacion crea el bloqueo en `pending_verification` por 15 minutos y emite un token hasheado asociado a WhatsApp.
+3. El servidor envia una plantilla utility de Twilio con un enlace de un solo uso.
+4. Abrir el enlace solo muestra una pantalla de activacion; la persona debe pulsar **Confirmar reserva** para confirmar una reserva de servicio `automatic` o mover una de servicio `manual` a `pending_approval`.
+5. Si la entrega de WhatsApp falla, el servidor emite un token de correo y envia el respaldo mediante Resend. El negocio confirma o rechaza desde agenda solamente las solicitudes de servicios `manual`.
 
 ## Datos Y Seguridad
 

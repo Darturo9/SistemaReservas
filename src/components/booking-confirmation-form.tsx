@@ -25,11 +25,21 @@ export function BookingConfirmationForm({
     return (
       <>
         <p className="eyebrow">Confirmación de reserva</p>
-        <h1>Tu solicitud ya está confirmada.</h1>
-        <p>
-          Tu solicitud fue enviada al negocio para aprobación. Te confirmarán la
-          reserva manualmente.
-        </p>
+        <h1>Tu reserva quedó confirmada.</h1>
+        <p>El negocio ya puede verla en su agenda.</p>
+        <Link className="button message-secondary" href="/">
+          Volver al inicio
+        </Link>
+      </>
+    );
+  }
+
+  if (state.status === "pending_approval") {
+    return (
+      <>
+        <p className="eyebrow">Confirmación de reserva</p>
+        <h1>Tu solicitud fue enviada.</h1>
+        <p>El negocio revisará y confirmará tu reserva manualmente.</p>
         <Link className="button message-secondary" href="/">
           Volver al inicio
         </Link>
@@ -68,7 +78,7 @@ export function BookingConfirmationForm({
           disabled={isPending}
           type="submit"
         >
-          {isPending ? "Confirmando solicitud..." : "Confirmar reserva"}
+          {isPending ? "Confirmando reserva..." : "Confirmar reserva"}
         </button>
       </form>
     </>

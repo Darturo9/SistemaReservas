@@ -869,7 +869,7 @@ export type Database = {
       };
       verify_public_booking_confirmation: {
         Args: { p_token: string };
-        Returns: boolean;
+        Returns: Database["public"]["Enums"]["booking_status"];
       };
       verify_public_booking_email: {
         Args: { p_token: string };

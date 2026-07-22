@@ -54,7 +54,7 @@ No se deben guardar valores de tokens de acceso, contrasenas de base de datos ni
 
 ## Confirmacion Por WhatsApp
 
-WhatsApp es el canal principal para confirmar una reserva publica; Resend envia un correo de respaldo si Twilio falla al iniciar o reporta una entrega fallida. Antes de activar el canal en produccion:
+WhatsApp es el canal principal para confirmar una reserva publica; Resend envia un correo de respaldo si Twilio falla al iniciar o reporta una entrega fallida. Abrir el enlace no lo consume: la persona debe pulsar **Confirmar reserva**. Esa activacion confirma la reserva si el servicio usa politica automatica o la envia a aprobacion manual si usa politica manual. Antes de activar el canal en produccion:
 
 ### Sandbox
 
@@ -72,7 +72,7 @@ WhatsApp es el canal principal para confirmar una reserva publica; Resend envia 
 4. Configura `TWILIO_ACCOUNT_SID` y `TWILIO_AUTH_TOKEN` como secretos en el proveedor de despliegue.
 5. Despliega la aplicacion. El servidor enviara a Twilio el Status Callback `https://reservas.solucionesweb-2025.com/api/twilio/whatsapp-status`; no agregues secretos ni firmas manualmente a esa URL.
 
-El visitante debe consentir expresamente la confirmacion por WhatsApp. Puede elegir correo desde el formulario si prefiere ese canal.
+El visitante debe consentir expresamente la confirmacion por WhatsApp. El correo se envía automaticamente solo como respaldo si falla la entrega de WhatsApp.
 
 ## Autenticacion Interna
 

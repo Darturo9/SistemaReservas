@@ -3,7 +3,7 @@
 import { createPublicClient } from "@/lib/supabase/public";
 
 export type BookingConfirmationState = {
-  status: "confirmed" | "idle" | "unavailable";
+  status: "confirmed" | "idle" | "pending_approval" | "unavailable";
 };
 
 export async function confirmPublicBooking(
@@ -22,5 +22,9 @@ export async function confirmPublicBooking(
     { p_token: token },
   );
 
-  return { status: !error && data ? "confirmed" : "unavailable" };
+  if (error || (data !== "confirmed" && data !== "pending_approval")) {
+    return { status: "unavailable" };
+  }
+
+  return { status: data };
 }

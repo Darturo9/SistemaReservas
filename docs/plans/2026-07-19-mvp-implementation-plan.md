@@ -8,8 +8,9 @@
 - Fase 4 completada: motor de slots, reservas transaccionales, proteccion anti-solapamiento y visor interno de agenda.
 - Fase 5.1 completada: catálogo público por slug, publicación explícita y consulta anónima de disponibilidad.
 - Fase 5.2 completada: clientes, contactos normalizados y bloqueos públicos de 15 minutos en `pending_verification`.
-- Fase 5.3 completada: tokens hasheados de correo de un solo uso y entrega mediante Resend.
-- SMS queda diferido para controlar costos del MVP. Siguiente objetivo: confirmación principal por WhatsApp con correo de respaldo y aprobación manual.
+- Fase 5.3 completada: tokens hasheados de un solo uso, confirmacion principal por WhatsApp y correo de respaldo mediante Resend.
+- El bloque minimo de aprobacion manual de Fase 6 esta implementado y la politica de cada servicio determina si una reserva verificada queda `confirmed` o `pending_approval`. Siguiente objetivo: validar ambos resultados y las acciones de `owner`, `admin` y `staff` desde agenda antes de ampliar el panel operativo.
+- SMS queda diferido para controlar costos del MVP.
 
 ## Objetivo De Entrega
 
@@ -88,15 +89,15 @@ Criterios de aceptacion:
 1. Completada, Fase 5.1: crear la pagina publica del comercio con slug, publicación explícita y selección de servicio, sucursal y fecha. Los recursos no se exponen y el visitante consulta "cualquiera disponible".
 2. Completada, Fase 5.2: crear clientes y contactos asociados a un tenant, con correo normalizado, telefono E.164, consentimiento y baja de WhatsApp. Los datos personales no se copian a auditoria.
 3. Completada, Fase 5.2: crear bloqueos públicos transaccionales en `pending_verification`, asociados a cliente y con vencimiento fijo de 15 minutos.
-4. Completada, Fase 5.3: integrar verificacion de correo mediante token hasheado o enlace de un solo uso, entregado por Resend. Verificar correo no confirma la reserva.
-5. Ajuste MVP: no integrar SMS todavia. El visitante elige WhatsApp o correo para confirmar su solicitud; WhatsApp es el canal principal y correo se envia automaticamente si WhatsApp falla.
-6. Guardar consentimiento de WhatsApp, el canal elegido por reserva y cada entrega del proveedor. Los enlaces son de un solo uso y al consumirse mueven la reserva a `pending_approval`.
+4. Completada, Fase 5.3: integrar tokens hasheados de un solo uso para WhatsApp y correo de respaldo mediante Resend.
+5. Ajuste MVP: no integrar SMS todavia. WhatsApp es el canal principal y el correo se envia automaticamente si WhatsApp falla.
+6. Guardar consentimiento de WhatsApp, el canal de confirmacion por reserva y cada entrega del proveedor. Abrir un enlace no lo consume; una activacion explicita confirma una reserva `automatic` o mueve una `manual` a `pending_approval`.
 7. Adelantar el bloque minimo de Fase 6: permitir que `owner` y `admin` confirmen o rechacen una reserva `pending_approval` desde la agenda, con auditoria. `staff` solo consulta.
 8. Diferir SMS, cancelacion y solicitud de reprogramacion hasta validar reservas reales y costos de mensajeria.
 
 Criterios de aceptacion:
 
-- Ninguna reserva publica se confirma automaticamente: requiere un enlace de confirmacion consumido por WhatsApp o correo y una accion manual de `owner` o `admin`.
+- Toda reserva publica requiere que la persona active explícitamente un enlace de confirmacion. Las reservas de servicios `automatic` quedan `confirmed`; las de servicios `manual` requieren una accion de `owner` o `admin`.
 - Los bloqueos vencidos liberan el horario.
 - El flujo no requiere que el cliente cree contrasena ni inicie sesion.
 - Los enlaces publicos no permiten acceder a reservas ajenas.
@@ -148,13 +149,13 @@ Criterios de aceptacion:
 
 ## Modelo De Datos Inicial
 
-| Area | Tablas iniciales |
-| --- | --- |
-| Identidad | `profiles`, `organizations`, `organization_members` |
-| Configuracion | `locations`, `resources`, `services`, `service_resources` |
-| Agenda | `availability_rules`, `availability_exceptions` |
-| Reservas | `bookings`, `customers`, `customer_contacts` (canal preferido y consentimiento), `booking_verifications` |
-| Operacion | `notification_jobs`, `notification_deliveries`, `audit_logs` |
+| Area          | Tablas iniciales                                                                                         |
+| ------------- | -------------------------------------------------------------------------------------------------------- |
+| Identidad     | `profiles`, `organizations`, `organization_members`                                                      |
+| Configuracion | `locations`, `resources`, `services`, `service_resources`                                                |
+| Agenda        | `availability_rules`, `availability_exceptions`                                                          |
+| Reservas      | `bookings`, `customers`, `customer_contacts` (canal preferido y consentimiento), `booking_verifications` |
+| Operacion     | `notification_jobs`, `notification_deliveries`, `audit_logs`                                             |
 
 ## Dependencias Externas A Decidir Antes De Fase 5
 

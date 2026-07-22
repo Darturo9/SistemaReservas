@@ -2,9 +2,9 @@
 
 ## Estado Actual
 
-Las fases 1, 2, 3, 4 y los bloques 5.1, 5.2, 5.3 y aprobacion manual inicial estan implementados. El siguiente bloque integra confirmacion por WhatsApp mediante Twilio con correo de respaldo. La verificacion real de correo fue validada en produccion.
+Las fases 1 a 5 y el bloque minimo de aprobacion manual de Fase 6 estan implementados. La confirmacion principal por WhatsApp, el correo de respaldo mediante Resend, los registros de entrega y la politica de aprobacion por servicio estan implementados.
 
-La verificacion SMS queda diferida para controlar costos del MVP. El siguiente bloque es WhatsApp como confirmacion principal y correo automatico de respaldo; despues se valida la aprobacion manual completa.
+La verificacion SMS queda diferida para controlar costos del MVP. El enlace de confirmacion no se consume al abrirse: muestra una pantalla de activacion y la persona debe pulsar **Confirmar reserva**. La reserva pasa a `confirmed` con politica `automatic` o a `pending_approval` con politica `manual`.
 
 ## Decisiones Vigentes
 
@@ -12,7 +12,7 @@ La verificacion SMS queda diferida para controlar costos del MVP. El siguiente b
 - No usar Docker ni iniciar Supabase local.
 - Aplicar cambios de base de datos con el MCP de Supabase y conservar cada migracion SQL en `supabase/migrations/`.
 - El registro es autoservicio con correo y contrasena; confirmar el correo es obligatorio.
-- En el MVP, el telefono se captura en formato E.164 pero no se verifica por SMS. WhatsApp es el canal principal para confirmar la intencion de reserva mediante enlace de un solo uso; correo es respaldo automatico ante fallo de WhatsApp. Un enlace consumido mueve la reserva a `pending_approval`, que un `owner` o `admin` resuelve manualmente.
+- En el MVP, el telefono se captura en formato E.164 pero no se verifica por SMS. WhatsApp es el canal principal para confirmar la intencion de reserva mediante enlace de un solo uso; correo es respaldo automatico ante fallo de WhatsApp. Abrir el enlace no cambia datos; una activacion explícita confirma las reservas de servicios `automatic` o mueve las de servicios `manual` a `pending_approval`, que un `owner` o `admin` resuelve manualmente.
 - RLS es la barrera principal entre tenants. `owner` y `admin` gestionan configuracion; `staff` solo consulta.
 
 ## Base De Datos
@@ -39,6 +39,8 @@ Migraciones local y remota sincronizadas:
 - `20260720194210_add_manual_booking_approval.sql`
 - `20260720201015_add_whatsapp_verification_channel.sql`
 - `20260720201208_add_multichannel_booking_confirmations.sql`
+- `20260720203500_grant_booking_verification_deliveries_to_service_role.sql`
+- `20260722012925_honor_service_approval_policy.sql`
 
 Tablas disponibles:
 
@@ -61,7 +63,7 @@ La funcion `public.create_service_with_resources(...)` crea un servicio y sus re
 - `/panel/[organizationId]/agenda`: visor interno de slots y lista de reservas pendientes de aprobacion; `owner` y `admin` pueden confirmar o rechazar.
 - `/panel/[organizationId]/reservas-publicas`: propietarios y administradores definen un slug y publican o desactivan el catálogo público.
 - `/reservar/[slug]`: catálogo público sin autenticación para consultar sucursal, servicio, fecha y slots disponibles.
-- `/reservar/verificar-correo`: consume un enlace de correo o WhatsApp de un solo uso y confirma la solicitud.
+- `/reservar/verificar-correo`: muestra una activacion no mutante para enlaces de correo o WhatsApp; el boton **Confirmar reserva** consume el token de un solo uso.
 
 Las acciones de servidor validan los datos y las politicas RLS aplican la autorizacion definitiva. Los triggers de base de datos registran cambios de configuracion en `audit_logs`.
 
@@ -87,20 +89,20 @@ supabase migration list --linked
 
 El historial local y remoto esta alineado.
 
-El 20 de julio de 2026 tambien se valido el flujo publico de correo en produccion:
+Entre el 20 y el 22 de julio de 2026 se validaron los flujos públicos de correo y WhatsApp en producción:
 
 - La aplicacion esta desplegada en Vercel y disponible en `https://reservas.solucionesweb-2025.com`.
 - Resend tiene `solucionesweb-2025.com` verificado y habilitado para envio.
-- La reserva de prueba creo un unico bloqueo `pending_verification` y un token de correo hasheado.
-- Resend registro el mensaje como `delivered`; Gmail lo clasifico en Spam durante esta primera prueba.
-- Al consumir el enlace, el contacto y la verificacion quedaron con `verified_at`; la reserva permanecio en `pending_verification` hasta la futura verificacion SMS.
-- Al reutilizar el mismo enlace, la pagina mostro que ya no estaba disponible.
+- La reserva de prueba creó un bloqueo `pending_verification` y un token hasheado.
+- Resend registró un correo como `delivered`; Gmail lo clasificó en Spam durante esa primera prueba.
+- Twilio entregó una confirmación por WhatsApp. La vista previa del enlace no consumió el token; al pulsar **Confirmar reserva**, el contacto y la verificación quedaron con `verified_at`. El estado final ahora depende de `services.approval_policy`.
+- Al reutilizar el mismo enlace, la página mostró que ya no estaba disponible.
 - `public.resolve_pending_booking_approval(...)` solo puede mover una reserva `pending_approval` a `confirmed` o `cancelled` bajo un rol `owner` o `admin`; `anon` no tiene permiso de ejecucion.
 
 ## Avisos Conocidos
 
 - El Security Advisor avisa que `public.create_organization(text)` es `SECURITY DEFINER` ejecutable por `authenticated`. Es intencional: crea organizacion, membresia owner y auditoria de forma atomica.
-- El Security Advisor tambien avisa sobre `create_booking`, `list_available_slots`, `list_public_available_slots`, `get_public_booking_catalog`, `create_public_booking_hold` y `verify_public_booking_email` porque son RPC `SECURITY DEFINER`. Es intencional: validan permisos o limitan el resultado antes de leer datos protegidos por RLS. Todas fijan `search_path = ''`; las RPC publicas solo tienen permiso para `anon`.
+- El Security Advisor tambien avisa sobre `create_booking`, `list_available_slots`, `list_public_available_slots`, `get_public_booking_catalog`, `create_public_booking_hold` y `verify_public_booking_confirmation` porque son RPC `SECURITY DEFINER`. Es intencional: validan permisos o limitan el resultado antes de leer datos protegidos por RLS. Todas fijan `search_path = ''`; las RPC publicas solo tienen permiso para `anon`.
 - Supabase Auth tiene desactivada la proteccion de contrasenas filtradas. Activarla en el Dashboard antes de produccion.
 - Los indices nuevos aparecen como sin uso porque aun no hay datos de configuracion; no deben eliminarse por ese aviso inicial.
 - No usar `magic_21st_magic_component_builder` en este proyecto: no hay creditos disponibles. Construir componentes y estilos de forma nativa.
@@ -136,25 +138,24 @@ El 20 de julio de 2026 tambien se valido el flujo publico de correo en produccio
 - La pagina publica permite seleccionar un slot y retenerlo con nombre, correo, telefono y consentimiento opcional de WhatsApp. No envia WhatsApp ni verifica ningun canal todavia.
 - `createPublicClient()` mantiene las RPC publicas bajo el rol `anon`, incluso si el visitante tiene una sesion interna iniciada.
 
-## Fase 5.3: Verificacion De Correo
+## Fase 5.3: Confirmacion Multicanal
 
-- `booking_verifications` conserva hashes de tokens, no tokens en texto plano. Solo `service_role` accede a la tabla directamente; `anon` solo puede consumir un token valido mediante RPC.
-- `public.issue_email_booking_verification(...)` se ejecuta exclusivamente mediante `service_role`, invalida un token de correo pendiente anterior y devuelve el token solo al servidor para entrega.
-- `public.verify_public_booking_email(...)` permite a `anon` consumir una vez un token vigente. Marca `customer_contacts.verified_at`, consume el token y mueve la reserva a `pending_approval`.
-- El servidor usa Resend para enviar `/reservar/verificar-correo?token=...`. Requiere `SUPABASE_SERVICE_ROLE_KEY`, `RESEND_API_KEY` y `RESEND_FROM_EMAIL`; sin ellas la aplicacion no crea el bloqueo para evitar retener horarios sin poder verificar.
-- La entrega real por Resend se valido en produccion. La primera entrega llego a Spam en Gmail pese a que Resend la reporto como `delivered`; revisar la reputacion y autenticacion del remitente antes de lanzar el flujo a clientes.
-- Si el correo de un cliente ya estaba verificado, `public.issue_email_booking_verification(...)` mueve el nuevo bloqueo a `pending_approval` sin enviar un segundo correo.
+- `booking_verifications` conserva hashes de tokens, no tokens en texto plano. Solo `service_role` accede a la tabla directamente; `anon` solo puede consumir un token válido mediante RPC.
+- `public.issue_public_booking_verification(...)` se ejecuta exclusivamente mediante `service_role`, invalida un token pendiente del mismo canal y devuelve el token solo al servidor para entrega.
+- `public.verify_public_booking_confirmation(...)` permite a `anon` consumir una vez un token vigente de WhatsApp o correo. Marca `customer_contacts.verified_at`, invalida otros tokens pendientes y devuelve `confirmed` para servicios `automatic` o `pending_approval` para servicios `manual`.
+- Abrir `/reservar/verificar-correo?token=...` no consume el token. El formulario de la página ejecuta la confirmación únicamente después de una activación explícita.
+- El servidor usa Twilio para WhatsApp y Resend como respaldo automático si falla la entrega. Requiere `SUPABASE_SERVICE_ROLE_KEY`, credenciales de Twilio y configuración de Resend; sin ellas la aplicación no crea el bloqueo para evitar retener horarios sin poder verificar.
 
-## Siguiente Objetivo: Validar Aprobacion Manual
+## Siguiente Objetivo: Validar Operacion De Agenda
 
-1. Configurar Twilio WhatsApp Business, un remitente y una plantilla utility con enlace de confirmacion.
-2. Crear una reserva con WhatsApp, consumir su enlace y validar que quede en `pending_approval`.
+1. Validar una confirmación pública para un servicio `automatic` y otra para `manual`, incluidos token de uso único, estado final y auditoría.
+2. Confirmar y rechazar solicitudes manuales desde `/panel/[organizationId]/agenda` bajo un rol `owner` o `admin`; verificar que `staff` solo consulta y que los cambios quedan en `audit_logs`.
 3. Simular un fallo de entrega de Twilio y comprobar que se emite correo de respaldo una sola vez.
-4. Confirmar y rechazar solicitudes desde `/panel/[organizationId]/agenda` bajo un rol `owner` o `admin`; verificar que `staff` solo consulta y que los cambios quedan en `audit_logs`.
-5. No implementar SMS, cancelacion, reprogramacion, recordatorios ni notificaciones de resultado hasta validar este bloque.
+4. Definir el alcance del siguiente bloque de Fase 6: detalle e historial de reserva, cancelación, reprogramación, no-show y vistas de agenda por día o semana.
+5. Mantener SMS, recordatorios y notificaciones de resultado fuera de alcance hasta validar estas operaciones.
 
 ## Mensaje Para Retomar
 
 ```text
-Continua SistemaReservas desde docs/2026-07-20-phase-3-handoff.md y los planes en docs/plans/. Las fases 1 a 4, Fases 5.1, 5.2 y 5.3, y la aprobacion manual inicial estan implementadas. El MVP no usara SMS por ahora: el correo validado mueve la reserva a pending_approval y owner/admin pueden confirmarla o rechazarla desde agenda. Valida primero este flujo completo y la auditoria; no avances a SMS, cancelacion, reprogramacion, WhatsApp, recordatorios ni notificaciones de resultado. Revisa repositorio, handoff, migraciones y tablas remotas antes de cambiar codigo. Usa Supabase MCP y migraciones SQL versionadas; no uses Docker. No uses magic_21st_magic_component_builder porque el proyecto no tiene creditos.
+Continua SistemaReservas desde este handoff, `AGENTS.md`, el README y los planes en docs/plans/. Las fases 1 a 5 y el bloque mínimo de aprobación manual de Fase 6 están implementados. WhatsApp es el canal principal, Resend es respaldo automático y la confirmación exige pulsar **Confirmar reserva**; un servicio `automatic` termina en `confirmed` y uno `manual` en `pending_approval`. Valida ambos resultados, la aprobación o rechazo desde agenda y la auditoría para `owner`, `admin` y `staff`. No avances a SMS, recordatorios ni notificaciones de resultado sin definir un cambio OpenSpec. Revisa repositorio, handoff, migraciones y tablas remotas antes de cambiar código. Usa Supabase MCP y migraciones SQL versionadas; no uses Docker. No uses magic_21st_magic_component_builder porque el proyecto no tiene créditos.
 ```
